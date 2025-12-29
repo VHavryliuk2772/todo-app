@@ -1,0 +1,37 @@
+{
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "PORT": "5197",
+        "todosHttpClientBaseAddress": "http://localhost:5293"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5197"
+    },
+    "https": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "todosHttpClientBaseAddress": "http://localhost:5293"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7071;http://localhost:5197"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "http://localhost:8080/home",
+      "environmentVariables": {
+        "PORT": "8080",
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "todosHttpClientBaseAddress": "http://localhost:8081"
+      },
+      "DockerRunArguments": "-p 8080:8080",
+      "publishAllPorts": false,
+      "useSSL": false,
+      "ContainerDevelopmentMode": "Regular"
+    }
+  }
+}

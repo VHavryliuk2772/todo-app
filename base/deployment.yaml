@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-app
+  template:
+    metadata:
+      labels:
+        app: todo-app
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      volumes: 
+        - name: home-image
+          persistentVolumeClaim:
+            claimName: todo-app-claim
+      containers:
+        - name: todo-app
+          image: havryliukv2772/todo-app
+          env:
+            - name: PORT
+              value: "1010" 
+            - name: HOME_IMAGE_DIR
+              value: "/app/images"
+            - name: todosHttpClientBaseAddress
+              value: "http://todo-backend-svc:2233"
+          volumeMounts:
+            - name: home-image
+              mountPath: /app/images
