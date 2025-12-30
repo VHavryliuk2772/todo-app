@@ -1,0 +1,25 @@
+name: Dispatch cleanup on branch delete (todo-app)
+
+on:
+  delete:
+
+jobs:
+  cleanup:
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch cleanup to infra
+        run: |
+          BRANCH="${{ github.event.ref }}"
+          curl -sS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.INFRA_DISPATCH_TOKEN }}" \
+            https://api.github.com/repos/${{ secrets.INFRA_REPO }}/dispatches \
+            -d @- <<JSON
+          {
+            "event_type": "cleanup",
+            "client_payload": {
+              "branch": "${BRANCH}"
+            }
+          }
+JSON

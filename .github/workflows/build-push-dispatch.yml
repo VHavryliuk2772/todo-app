@@ -1,0 +1,62 @@
+name: Build & Push todo-app + Dispatch deploy
+
+on:
+  push:
+    branches: ["**"]
+
+env:
+  REGION: europe-north1
+  REGISTRY: europe-north1-docker.pkg.dev
+  IMAGE_REPO: todo-app
+  IMAGE_NAME: todo-app
+  GKE_CLUSTER: dwk-cluster
+  GKE_ZONE: europe-north1-b
+
+jobs:
+  build-push-dispatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GKE_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure docker auth for GAR
+        run: gcloud auth configure-docker $REGISTRY --quiet
+
+      - name: Compute image tag
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          SAFE_BRANCH="${BRANCH//\//-}"
+          echo "SAFE_BRANCH=$SAFE_BRANCH" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${SAFE_BRANCH}-${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "IMAGE=${REGISTRY}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_REPO}/${IMAGE_NAME}:${SAFE_BRANCH}-${GITHUB_SHA}" >> $GITHUB_ENV
+
+      - name: Build
+        run: docker build -t "$IMAGE" .
+
+      - name: Push
+        run: docker push "$IMAGE"
+
+      - name: Dispatch deploy to infra
+        run: |
+          curl -sS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.INFRA_DISPATCH_TOKEN }}" \
+            https://api.github.com/repos/${{ secrets.INFRA_REPO }}/dispatches \
+            -d @- <<JSON
+          {
+            "event_type": "deploy",
+            "client_payload": {
+              "service": "todo-app",
+              "image": "${IMAGE}",
+              "branch": "${GITHUB_REF_NAME}",
+              "sha": "${GITHUB_SHA}",
+              "repo": "${GITHUB_REPOSITORY}"
+            }
+          }
+JSON
