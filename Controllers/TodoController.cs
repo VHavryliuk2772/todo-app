@@ -112,7 +112,7 @@ namespace todo_app.Controllers
                   </style>
                 </head>
                 <body>
-                  <h1>The project App</h1>
+                  <h1>The project App U</h1>
 
                   <img src=""/todo/image"" alt=""Random image"" />
 
